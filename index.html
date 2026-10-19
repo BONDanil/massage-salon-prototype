@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Maison Alpin — Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<style>
+  :root{
+    --cream:#f7f2ea; --sand:#ece3d4; --ink:#1f1c19; --muted:#6b635a;
+    --gold:#b08a4e; --gold-dark:#8d6b36; --night:#1c1a18; --line:#d9cdb9; --white:#fff;
+    --serif:"Cormorant Garamond",Georgia,serif; --sans:"Inter",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;overflow-x:hidden;background:var(--cream);color:var(--ink);font-family:var(--sans);font-weight:300;line-height:1.6}
+  a{color:inherit}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-family:var(--serif);font-weight:600;line-height:1.15;margin:0 0 .5em}
+  h2{font-size:clamp(2rem,4vw,2.8rem);text-align:center}
+  .lead{max-width:660px;margin:0 auto 48px;text-align:center;color:var(--muted);font-size:1.1rem}
+  section{padding:96px 0;scroll-margin-top:64px}
+
+  .demo{background:#7a2e2e;color:#fff;text-align:center;font-size:.8rem;padding:6px 12px;letter-spacing:.04em}
+
+  /* header */
+  header{position:sticky;top:0;z-index:1000;background:rgba(247,242,234,.95);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:24px;height:76px}
+  .logo{text-decoration:none;display:flex;flex-direction:column;line-height:1}
+  .logo b{font-family:var(--serif);font-size:1.9rem;letter-spacing:.12em}
+  .logo i{font-family:var(--serif);font-size:1rem;color:var(--gold-dark);letter-spacing:.08em}
+  .menu{display:flex;gap:24px;list-style:none;margin:0;padding:0}
+  .menu a{text-decoration:none;font-size:.76rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase}
+  .menu a:hover{color:var(--gold-dark)}
+  .langs{display:flex;gap:4px}
+  .langs button{border:0;background:none;font:600 .78rem var(--sans);letter-spacing:.1em;padding:6px 7px;cursor:pointer;color:var(--muted)}
+  .langs button[aria-pressed=true]{color:var(--ink);border-bottom:2px solid var(--gold)}
+  .burger{display:none;border:0;background:none;font-size:1.6rem;cursor:pointer}
+
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:999px;font:600 .9rem var(--sans);letter-spacing:.03em;text-decoration:none;cursor:pointer;border:1.5px solid transparent;transition:.2s}
+  .btn-gold{background:var(--gold);color:#fff}
+  .btn-gold:hover{background:var(--gold-dark)}
+  .btn-ghost{border-color:currentColor;color:#fff;background:transparent}
+  .btn-ghost:hover{background:rgba(255,255,255,.12)}
+  .btn-line{border-color:var(--ink);color:var(--ink);background:transparent}
+  .btn-dikidi{background:#2f6f6a;color:#fff}
+  .btn-dikidi:hover{background:#245752}
+  .via{display:inline-block;font-size:.66rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.22)}
+  .bookpair{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .bookpair.center{justify-content:center}
+  .btn-line:hover{background:var(--ink);color:#fff}
+
+  /* hero */
+  .hero{position:relative;min-height:min(82vh,760px);display:flex;align-items:center;color:#fff;padding:120px 0;
+    background:radial-gradient(ellipse at 75% 30%,rgba(176,138,78,.45),transparent 55%),
+               linear-gradient(135deg,#2b2520 0%,#463a2e 45%,#6d5a45 100%)}
+  .hero::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1600' height='600' viewBox='0 0 1600 600'%3E%3Cpath d='M0 600 L260 330 L420 450 L700 170 L900 380 L1080 250 L1300 420 L1600 200 L1600 600Z' fill='%23ffffff' fill-opacity='0.06'/%3E%3Cpath d='M0 600 L340 420 L560 520 L820 300 L1040 470 L1260 360 L1600 520 L1600 600Z' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E") bottom/cover no-repeat;pointer-events:none}
+  .hero .wrap{position:relative;z-index:1}
+  .eyebrow{font-size:.8rem;letter-spacing:.25em;text-transform:uppercase;color:#e9d3ad;margin-bottom:18px}
+  .hero h1{font-size:clamp(2.6rem,6vw,4.6rem);max-width:780px}
+  .hero p{max-width:580px;font-size:1.15rem;color:#efe6d8;margin:0 0 36px}
+  .ctas{display:flex;gap:16px;flex-wrap:wrap}
+  .hero .facts{display:flex;gap:28px;flex-wrap:wrap;margin-top:40px;font-size:.9rem;color:#e9d3ad}
+
+  /* marquee */
+  .marquee{background:var(--sand);overflow:hidden;padding:22px 0;border-block:1px solid var(--line)}
+  .marquee div{display:flex;gap:80px;white-space:nowrap;animation:scroll 28s linear infinite;width:max-content}
+  .marquee span{font-family:var(--serif);font-size:clamp(2rem,5vw,3.6rem);color:#a49a8a}
+  @keyframes scroll{to{transform:translateX(-50%)}}
+  @media (prefers-reduced-motion:reduce){.marquee div{animation:none}}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;counter-reset:s}
+  .step{position:relative;border-radius:6px;overflow:hidden;min-height:300px;padding:28px;color:#fff;display:flex;flex-direction:column;justify-content:flex-end}
+  .step::before{counter-increment:s;content:"0" counter(s);position:absolute;top:18px;left:24px;font-family:var(--serif);font-size:3.2rem;opacity:.45}
+  .step::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.5))}
+  .step h3,.step p{position:relative;z-index:1}
+  .step h3{font-size:1.6rem;margin-bottom:6px}
+  .step p{margin:0;font-size:.92rem;opacity:.95}
+  .t1{background:linear-gradient(140deg,#8b6b4a,#c9a77c)} .t2{background:linear-gradient(140deg,#5d6b5a,#a5b39a)}
+  .t3{background:linear-gradient(140deg,#6e4b4b,#c18f86)} .t4{background:linear-gradient(140deg,#3f4a5c,#8a9ab0)}
+  .t5{background:linear-gradient(140deg,#7b6a54,#d8c3a0)} .t6{background:linear-gradient(140deg,#4a3f52,#a493b0)}
+
+  /* dark detail */
+  .dark{background:var(--night);color:#efe6d8}
+  .dark .lead{color:#b9ad9c}
+  .rows{display:grid;gap:56px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+  .row:nth-child(even) .ph{order:2}
+  .ph{aspect-ratio:4/3;border-radius:6px}
+  .row h3{font-size:2rem;color:#fff}
+  .row ul{padding-left:1.1em;margin:0 0 24px} .row li{margin:4px 0}
+  .disclaimer{max-width:760px;margin:48px auto 0;text-align:center;font-size:.85rem;color:#b9ad9c}
+
+  /* who */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  .card{border:1px solid var(--gold);border-radius:4px 80px 4px 80px;padding:48px 24px;text-align:center;min-height:220px;display:flex;flex-direction:column;justify-content:center}
+  .card h3{font-size:1.5rem;color:var(--gold-dark)}
+  .card p{margin:0;color:var(--muted);font-size:.95rem}
+
+  /* about */
+  .about{display:grid;grid-template-columns:1.1fr 1fr;gap:64px;align-items:center}
+  .about h2{text-align:left}
+  .feats{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:32px}
+  .feat b{display:block;font-family:var(--serif);font-size:1.3rem;margin-bottom:4px}
+  .feat span{color:var(--muted);font-size:.95rem}
+  .about .ph{background:linear-gradient(160deg,#d8c3a0,#8b6b4a);aspect-ratio:4/5}
+
+  /* reviews */
+  .rating{text-align:center;margin-bottom:36px}
+  .rating b{font-family:var(--serif);font-size:3rem}
+  .stars{color:var(--gold);letter-spacing:4px}
+  .revs{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+  .rev{background:var(--white);border:1px solid var(--line);border-radius:6px;padding:28px}
+  .rev p{margin:10px 0 16px}
+  .rev small{color:var(--muted)}
+  .note{text-align:center;color:var(--muted);font-size:.85rem;margin-top:20px}
+
+  /* prices */
+  .plist{max-width:760px;margin:0 auto;background:var(--white);border:1px solid var(--line);border-radius:6px;padding:8px 32px}
+  .pitem{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:22px 0;border-bottom:1px solid var(--line)}
+  .pitem:last-child{border-bottom:0}
+  .pitem b{font-weight:600} .pitem small{display:block;color:var(--muted)}
+  .pitem .pr{font-family:var(--serif);font-size:1.5rem;white-space:nowrap}
+  .tag{display:inline-block;background:var(--gold);color:#fff;font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:2px 10px;margin-left:8px;vertical-align:middle}
+  .policy{max-width:760px;margin:20px auto 0;color:var(--muted);font-size:.9rem;text-align:center}
+
+  /* faq */
+  .faq{max-width:760px;margin:0 auto}
+  details{border-bottom:1px solid var(--line);padding:18px 0}
+  summary{cursor:pointer;font-family:var(--serif);font-size:1.35rem;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:16px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";color:var(--gold)} details[open] summary::after{content:"–"}
+  details p{margin:12px 0 0;color:var(--muted)}
+
+  /* location */
+  .loc{display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:stretch}
+  #map{min-height:440px;border-radius:6px;border:1px solid var(--line);z-index:0}
+  .loc-info{display:flex;flex-direction:column;gap:24px}
+  .addr{font-family:var(--serif);font-size:1.7rem;line-height:1.25}
+  .loc-actions{display:flex;gap:12px;flex-wrap:wrap}
+  .copied{font-size:.85rem;color:var(--gold-dark);min-height:1.2em}
+  .park{background:var(--white);border:1px solid var(--line);border-radius:6px;padding:24px}
+  .park h3{font-size:1.5rem;display:flex;align-items:center;gap:10px}
+  .park h3 .p{display:inline-flex;width:30px;height:30px;border-radius:6px;background:#1f5fa8;color:#fff;font:700 1rem var(--sans);align-items:center;justify-content:center}
+  .park ul{margin:0;padding-left:1.1em} .park li{margin:6px 0}
+  .tip{margin-top:16px;padding:14px 16px;background:#f3ead8;border-left:3px solid var(--gold);border-radius:4px;font-size:.95rem}
+  .pin-p{background:#1f5fa8;color:#fff;border-radius:6px;font:700 13px/24px var(--sans);text-align:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+  .pin-s{background:var(--gold);border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+
+  /* vouchers */
+  .voucher{background:linear-gradient(135deg,#b08a4e,#8d6b36);color:#fff;border-radius:8px;padding:56px;display:grid;grid-template-columns:1.4fr 1fr;gap:32px;align-items:center}
+  .voucher h2{text-align:left;color:#fff}
+  .voucher .btn{background:#fff;color:var(--gold-dark)}
+
+  /* contact */
+  .contact{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+  .contact h2{text-align:left}
+  .contact dl{display:grid;grid-template-columns:auto 1fr;gap:10px 24px;margin:0}
+  .contact dt{font-weight:600}
+  .contact dd{margin:0}
+
+  /* socials */
+  .socials{display:flex;gap:12px;flex-wrap:wrap}
+  .socials a{width:44px;height:44px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--white);color:var(--ink);transition:.2s}
+  .socials a:hover{background:var(--gold);border-color:var(--gold);color:#fff}
+  .socials svg{width:20px;height:20px}
+  footer .socials a{background:transparent;border-color:#4a443d;color:#efe6d8}
+
+  footer{background:var(--night);color:#b9ad9c;padding:48px 0;font-size:.85rem}
+  footer .wrap{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
+  footer a{color:#efe6d8}
+
+  /* floating book buttons (bottom right): one per booking platform */
+  .fabs{position:fixed;right:24px;bottom:24px;z-index:1100;display:flex;flex-direction:column;gap:14px;align-items:center}
+  .fab-book{width:92px;height:92px;border-radius:50%;background:var(--gold);color:#fff;border:0;cursor:pointer;font:600 .74rem/1.15 var(--sans);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 0 0 8px rgba(176,138,78,.18),0 8px 24px rgba(0,0,0,.2);padding:8px;text-align:center;text-decoration:none}
+  .fab-book:hover{background:var(--gold-dark)}
+  .fab-book.dk{background:#2f6f6a;box-shadow:0 0 0 8px rgba(47,111,106,.18),0 8px 24px rgba(0,0,0,.2)}
+  .fab-book.dk:hover{background:#245752}
+  .fab-book .via{font-size:.58rem;padding:1px 6px}
+
+  @media (max-width:980px){
+    .menu{display:none;position:absolute;top:76px;left:0;right:0;flex-direction:column;background:var(--cream);padding:24px;border-bottom:1px solid var(--line)}
+    .menu.open{display:flex}
+    .burger{display:block}
+    .steps,.cards{grid-template-columns:1fr 1fr}
+    .revs{grid-template-columns:1fr 1fr}
+    .row,.about,.contact,.voucher,.loc{grid-template-columns:1fr}
+    .row:nth-child(even) .ph{order:0}
+    section{padding:72px 0}
+    .voucher{padding:36px}
+    #map{min-height:340px}
+  }
+  @media (max-width:560px){
+    .wrap{padding:0 16px}
+    .steps,.revs,.cards,.feats{grid-template-columns:1fr}
+    .step{min-height:220px}
+    .fabs{right:16px;bottom:16px;gap:10px}
+    .fab-book{width:74px;height:74px;font-size:.64rem}
+    .plist{padding:4px 18px}
+    .nav{gap:8px;height:64px}
+    .menu{top:64px}
+    .logo b{font-size:1.25rem}
+    .logo i{display:none}
+    .langs button{padding:6px 4px;font-size:.72rem}
+    .hero{padding:72px 0}
+  }
+</style>
+</head>
+<body>
+
+<div class="demo" data-i18n="demo"></div>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#top"><b>MAISON ALPIN</b><i>beauty &amp; massage · Saanen</i></a>
+    <ul class="menu" id="menu">
+      <li><a href="#treatment" data-i18n="nav.treatment"></a></li>
+      <li><a href="#prices" data-i18n="nav.prices"></a></li>
+      <li><a href="#about" data-i18n="nav.about"></a></li>
+      <li><a href="#faq" data-i18n="nav.faq"></a></li>
+      <li><a href="#location" data-i18n="nav.location"></a></li>
+      <li><a href="#contact" data-i18n="nav.contact"></a></li>
+    </ul>
+    <div class="langs" role="group" aria-label="Language">
+      <button data-lang="de">DE</button><button data-lang="en">EN</button><button data-lang="fr">FR</button><button data-lang="it">IT</button>
+    </div>
+    <button class="burger" aria-label="Menu" onclick="document.getElementById('menu').classList.toggle('open')">☰</button>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow" data-i18n="hero.eyebrow"></div>
+      <h1 data-i18n="hero.title"></h1>
+      <p data-i18n="hero.text"></p>
+      <div class="ctas">
+        <div class="bookpair js-bookpair"></div>
+        <a class="btn btn-ghost" href="#treatment" data-i18n="cta.more"></a>
+      </div>
+      <div class="facts"><span data-i18n="hero.f1"></span><span data-i18n="hero.f2"></span><span data-i18n="hero.f3"></span></div>
+    </div>
+  </section>
+
+  <div class="marquee" aria-hidden="true"><div id="marquee"></div></div>
+
+  <section id="treatment">
+    <div class="wrap">
+      <h2 data-i18n="treatment.title"></h2>
+      <p class="lead" data-i18n="treatment.lead"></p>
+      <div class="steps" id="steps"></div>
+    </div>
+  </section>
+
+  <section class="dark">
+    <div class="wrap">
+      <h2 data-i18n="detail.title"></h2>
+      <p class="lead" data-i18n="detail.lead"></p>
+      <div class="rows" id="rows"></div>
+      <p class="disclaimer" data-i18n="detail.disclaimer"></p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2 data-i18n="who.title"></h2>
+      <p class="lead" data-i18n="who.lead"></p>
+      <div class="cards" id="cards"></div>
+    </div>
+  </section>
+
+  <section id="about" style="background:var(--sand)">
+    <div class="wrap about">
+      <div>
+        <h2 data-i18n="about.title"></h2>
+        <p data-i18n="about.text"></p>
+        <div class="feats" id="feats"></div>
+      </div>
+      <div class="ph" role="img" aria-label="Photo placeholder"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <h2 data-i18n="reviews.title"></h2>
+      <div class="rating"><b>4.9</b><div class="stars">★★★★★</div><small data-i18n="reviews.count"></small></div>
+      <div class="revs" id="revs"></div>
+      <p class="note" data-i18n="reviews.note"></p>
+    </div>
+  </section>
+
+  <section id="prices" style="background:var(--sand)">
+    <div class="wrap">
+      <h2 data-i18n="prices.title"></h2>
+      <p class="lead" data-i18n="prices.lead"></p>
+      <div class="plist" id="plist"></div>
+      <p class="policy" data-i18n="prices.policy"></p>
+      <div class="bookpair center js-bookpair" style="margin-top:28px"></div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <h2 data-i18n="faq.title"></h2>
+      <div class="faq" id="faqlist"></div>
+    </div>
+  </section>
+
+  <section id="location" style="background:var(--sand)">
+    <div class="wrap">
+      <h2 data-i18n="loc.title"></h2>
+      <p class="lead" data-i18n="loc.lead"></p>
+      <div class="loc">
+        <div id="map" role="region" aria-label="Map"></div>
+        <div class="loc-info">
+          <div>
+            <div class="addr">Maison Alpin<br>Dorfstrasse 1<br>3792 Saanen</div>
+          </div>
+          <div class="loc-actions">
+            <a class="btn btn-gold" id="directions" target="_blank" rel="noopener">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+              <span data-i18n="loc.directions"></span></a>
+            <button class="btn btn-line" id="copyLoc">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span data-i18n="loc.copy"></span></button>
+          </div>
+          <div class="copied" id="copied" aria-live="polite"></div>
+          <div class="park">
+            <h3><span class="p">P</span><span data-i18n="park.title"></span></h3>
+            <ul id="parklist"></ul>
+            <div class="tip"><b data-i18n="park.tipLabel"></b> <span data-i18n="park.tip"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="vouchers">
+    <div class="wrap">
+      <div class="voucher">
+        <div><h2 data-i18n="vouchers.title"></h2><p data-i18n="vouchers.text"></p></div>
+        <div><a class="btn" href="#contact" data-i18n="vouchers.cta"></a></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" style="background:var(--sand)">
+    <div class="wrap contact">
+      <div>
+        <h2 data-i18n="contact.title"></h2>
+        <dl>
+          <dt data-i18n="contact.address"></dt><dd>Dorfstrasse 1, 3792 Saanen</dd>
+          <dt data-i18n="contact.phone"></dt><dd>+41 00 000 00 00 (DEMO)</dd>
+          <dt>E-Mail</dt><dd>hello@example.ch</dd>
+          <dt data-i18n="contact.hours"></dt><dd data-i18n="contact.hoursVal"></dd>
+          <dt data-i18n="contact.pay"></dt><dd>TWINT · Visa · Mastercard · Cash</dd>
+        </dl>
+        <div class="bookpair js-bookpair" style="margin-top:28px"></div>
+      </div>
+      <div>
+        <h3 style="font-size:1.6rem" data-i18n="contact.follow"></h3>
+        <p style="color:var(--muted)" data-i18n="contact.followText"></p>
+        <div class="socials js-socials"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>© 2026 Maison Alpin (DEMO) · <a href="#" data-i18n="footer.imprint"></a> · <a href="#" data-i18n="footer.privacy"></a></div>
+    <div class="socials js-socials"></div>
+  </div>
+</footer>
+
+<div class="fabs">
+  <button class="fab-book js-book" aria-label="Book via Cal.com">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+    <span data-i18n="cta.fab"></span><span class="via">Cal.com</span>
+  </button>
+  <a class="fab-book dk" href="https://dikidi.app/#widget=220677" aria-label="Book via Dikidi">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+    <span data-i18n="cta.fab"></span><span class="via">Dikidi</span>
+  </a>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<!-- Dikidi booking widget: opens a popup for any link to dikidi.app/#widget=… -->
+<script>window.dikidi={domain:"dikidi.app"}</script>
+<script src="https://dikidi.app/assets/js/widget_record/widget2.min.js?v=1825777749"></script>
+<script>
+/* ---------- made-up content (except the map/parking data), 4 languages ---------- */
+const T = {
+de:{
+ demo:"DEMO-WEBSITE · Name, Preise, Bewertungen und Kontaktdaten sind erfunden · Zwei Buchungssysteme zum Vergleich: Cal.com und Dikidi",
+ nav:{treatment:"Behandlung",prices:"Preise",about:"Über uns",faq:"FAQ",location:"Anfahrt",contact:"Kontakt"},
+ hero:{eyebrow:"Anti-Cellulite-Massage in Saanen",title:"Glattere, straffer wirkende Haut – mit gezielter Massage",text:"Eine intensive, manuelle Anti-Cellulite-Massage für Beine, Po und Bauch. Als Einzelsitzung oder als Kur. Online buchen, in Ihrer Sprache.",f1:"✓ 60 Minuten",f2:"✓ Natürliche Öle",f3:"✓ Probesitzung CHF 90"},
+ cta:{book:"Termin buchen",more:"Mehr erfahren",fab:"Jetzt buchen"},
+ marquee:"Pflege · Wärme · Wohlgefühl ·",
+ treatment:{title:"So läuft Ihre Behandlung ab",lead:"Eine Sitzung dauert 60 Minuten. Die erste Probesitzung dauert 45 Minuten und beginnt mit einem kurzen Gespräch."},
+ detail:{title:"Mehr über die Anti-Cellulite-Massage",lead:"Kräftige Grifftechniken, warme Öle und ein Plan, der zu Ihnen passt.",disclaimer:"Kosmetische Wellness-Behandlung, keine medizinische Therapie. Das Ergebnis ist individuell und hängt u. a. von Hauttyp, Lebensstil und Anzahl der Sitzungen ab."},
+ who:{title:"Für wen?",lead:"Für alle, die ihrer Haut regelmässig etwas Gutes tun möchten."},
+ about:{title:"Über Maison Alpin",text:"Ein kleines Studio mitten in Saanen, spezialisiert auf eine einzige Behandlung: die Anti-Cellulite-Massage. Eine Masseurin, warme Atmosphäre und Zeit für jeden Gast. Wir sprechen Deutsch, Englisch, Französisch und Italienisch."},
+ reviews:{title:"Was unsere Gäste sagen",count:"Basierend auf 31 Bewertungen",note:"Demo: Diese Bewertungen sind erfunden."},
+ prices:{title:"Preise",lead:"Alle Preise in CHF. Mit einem Paket sparen Sie pro Sitzung.",policy:"Bitte sagen Sie Termine mindestens 24 Stunden vorher ab. Pakete sind 6 Monate gültig."},
+ faq:{title:"Häufige Fragen"},
+ loc:{title:"Anfahrt & Parkieren",lead:"Mitten im Dorf Saanen, wenige Minuten zu Fuss vom Bahnhof.",directions:"Route planen",copy:"Adresse kopieren",copied:"✓ Adresse kopiert"},
+ park:{title:"Wo parkieren?",tipLabel:"Unser Tipp:",tip:"Parkieren Sie auf dem Parkplatz Bahnhofgässli beim Bahnhof Saanen – von dort sind es nur ca. 3 Minuten zu Fuss. Bitte nicht vor dem Studio an der Dorfstrasse halten."},
+ vouchers:{title:"Geschenkgutscheine",text:"Verschenken Sie eine Sitzung oder ein ganzes Paket.",cta:"Gutschein anfragen"},
+ contact:{title:"Kontakt",address:"Adresse",phone:"Telefon",hours:"Öffnungszeiten",hoursVal:"Di–Sa 9–19 Uhr",pay:"Zahlung",follow:"Folgen Sie uns",followText:"Tipps, Einblicke ins Studio und freie Termine."},
+ footer:{imprint:"Impressum",privacy:"Datenschutz"}
+},
+en:{
+ demo:"DEMO WEBSITE · Name, prices, reviews and contact details are made up · Two booking systems for comparison: Cal.com and Dikidi",
+ nav:{treatment:"Treatment",prices:"Prices",about:"About",faq:"FAQ",location:"Getting here",contact:"Contact"},
+ hero:{eyebrow:"Anti-cellulite massage in Saanen",title:"Smoother, firmer-looking skin – with a targeted massage",text:"An intensive, manual anti-cellulite massage for legs, bottom and tummy. As a single session or a course. Book online, in your language.",f1:"✓ 60 minutes",f2:"✓ Natural oils",f3:"✓ Trial session CHF 90"},
+ cta:{book:"Book now",more:"Learn more",fab:"Book now"},
+ marquee:"Care · Warmth · Well-being ·",
+ treatment:{title:"How your session works",lead:"A session lasts 60 minutes. Your first trial session lasts 45 minutes and starts with a short chat."},
+ detail:{title:"More about the anti-cellulite massage",lead:"Firm techniques, warm oils and a plan that suits you.",disclaimer:"Cosmetic wellness treatment, not a medical therapy. Results vary and depend on skin type, lifestyle and the number of sessions, among other things."},
+ who:{title:"Who is it for?",lead:"For anyone who wants to treat their skin to regular care."},
+ about:{title:"About Maison Alpin",text:"A small studio in the heart of Saanen, focused on one treatment: the anti-cellulite massage. One therapist, a warm atmosphere and time for every guest. We speak German, English, French and Italian."},
+ reviews:{title:"What our guests say",count:"Based on 31 reviews",note:"Demo: these reviews are made up."},
+ prices:{title:"Prices",lead:"All prices in CHF. A package saves you money on every session.",policy:"Please cancel at least 24 hours in advance. Packages are valid for 6 months."},
+ faq:{title:"Frequently asked questions"},
+ loc:{title:"Getting here & parking",lead:"In the centre of Saanen village, a few minutes' walk from the station.",directions:"Get directions",copy:"Copy address",copied:"✓ Address copied"},
+ park:{title:"Where to park?",tipLabel:"Our tip:",tip:"Park at the Bahnhofgässli car park by Saanen station – it's only about a 3-minute walk from there. Please don't stop in front of the studio on Dorfstrasse."},
+ vouchers:{title:"Gift vouchers",text:"Give a single session or a whole package.",cta:"Ask for a voucher"},
+ contact:{title:"Contact",address:"Address",phone:"Phone",hours:"Opening hours",hoursVal:"Tue–Sat 9am–7pm",pay:"Payment",follow:"Follow us",followText:"Tips, a look inside the studio and free slots."},
+ footer:{imprint:"Imprint",privacy:"Privacy"}
+},
+fr:{
+ demo:"SITE DE DÉMO · Nom, prix, avis et coordonnées sont fictifs · Deux systèmes de réservation à comparer : Cal.com et Dikidi",
+ nav:{treatment:"Le soin",prices:"Tarifs",about:"À propos",faq:"FAQ",location:"Accès",contact:"Contact"},
+ hero:{eyebrow:"Massage anticellulite à Saanen",title:"Une peau plus lisse et d'apparence plus ferme – grâce à un massage ciblé",text:"Un massage anticellulite manuel et intensif pour les jambes, les fesses et le ventre. En séance unique ou en cure. Réservez en ligne, dans votre langue.",f1:"✓ 60 minutes",f2:"✓ Huiles naturelles",f3:"✓ Séance d'essai CHF 90"},
+ cta:{book:"Réserver",more:"En savoir plus",fab:"Réserver"},
+ marquee:"Soin · Chaleur · Bien-être ·",
+ treatment:{title:"Le déroulement de votre séance",lead:"Une séance dure 60 minutes. La première séance d'essai dure 45 minutes et commence par un court échange."},
+ detail:{title:"En savoir plus sur le massage anticellulite",lead:"Des techniques fermes, des huiles chaudes et un programme adapté à vous.",disclaimer:"Soin de bien-être cosmétique, pas une thérapie médicale. Les résultats varient selon le type de peau, le mode de vie et le nombre de séances, entre autres."},
+ who:{title:"Pour qui ?",lead:"Pour toutes celles et ceux qui veulent prendre soin de leur peau régulièrement."},
+ about:{title:"À propos de Maison Alpin",text:"Un petit studio au cœur de Saanen, spécialisé dans un seul soin : le massage anticellulite. Une masseuse, une ambiance chaleureuse et du temps pour chaque client. Nous parlons allemand, anglais, français et italien."},
+ reviews:{title:"Ce que disent nos clients",count:"Sur la base de 31 avis",note:"Démo : ces avis sont fictifs."},
+ prices:{title:"Tarifs",lead:"Tous les prix en CHF. Avec un forfait, chaque séance revient moins cher.",policy:"Merci d'annuler au moins 24 heures à l'avance. Les forfaits sont valables 6 mois."},
+ faq:{title:"Questions fréquentes"},
+ loc:{title:"Accès & parking",lead:"Au centre du village de Saanen, à quelques minutes à pied de la gare.",directions:"Itinéraire",copy:"Copier l'adresse",copied:"✓ Adresse copiée"},
+ park:{title:"Où se garer ?",tipLabel:"Notre conseil :",tip:"Garez-vous au parking Bahnhofgässli près de la gare de Saanen – le studio n'est qu'à environ 3 minutes à pied. Merci de ne pas vous arrêter devant le studio sur la Dorfstrasse."},
+ vouchers:{title:"Bons cadeaux",text:"Offrez une séance ou tout un forfait.",cta:"Demander un bon"},
+ contact:{title:"Contact",address:"Adresse",phone:"Téléphone",hours:"Horaires",hoursVal:"Mar–sam 9h–19h",pay:"Paiement",follow:"Suivez-nous",followText:"Conseils, coulisses du studio et créneaux libres."},
+ footer:{imprint:"Mentions légales",privacy:"Confidentialité"}
+},
+it:{
+ demo:"SITO DEMO · Nome, prezzi, recensioni e contatti sono inventati · Due sistemi di prenotazione a confronto: Cal.com e Dikidi",
+ nav:{treatment:"Trattamento",prices:"Prezzi",about:"Chi siamo",faq:"FAQ",location:"Come arrivare",contact:"Contatti"},
+ hero:{eyebrow:"Massaggio anticellulite a Saanen",title:"Una pelle più liscia e dall'aspetto più tonico – con un massaggio mirato",text:"Un massaggio anticellulite manuale e intenso per gambe, glutei e addome. Come seduta singola o come ciclo. Prenota online, nella tua lingua.",f1:"✓ 60 minuti",f2:"✓ Oli naturali",f3:"✓ Seduta di prova CHF 90"},
+ cta:{book:"Prenota",more:"Scopri di più",fab:"Prenota ora"},
+ marquee:"Cura · Calore · Benessere ·",
+ treatment:{title:"Come si svolge la seduta",lead:"Una seduta dura 60 minuti. La prima seduta di prova dura 45 minuti e inizia con una breve chiacchierata."},
+ detail:{title:"Di più sul massaggio anticellulite",lead:"Tecniche decise, oli caldi e un programma su misura per te.",disclaimer:"Trattamento di benessere cosmetico, non una terapia medica. I risultati variano e dipendono, tra l'altro, dal tipo di pelle, dallo stile di vita e dal numero di sedute."},
+ who:{title:"Per chi?",lead:"Per chi vuole prendersi cura della propria pelle con regolarità."},
+ about:{title:"Chi è Maison Alpin",text:"Un piccolo studio nel cuore di Saanen, dedicato a un solo trattamento: il massaggio anticellulite. Una massaggiatrice, un'atmosfera calda e tempo per ogni ospite. Parliamo tedesco, inglese, francese e italiano."},
+ reviews:{title:"Cosa dicono i nostri ospiti",count:"Basato su 31 recensioni",note:"Demo: queste recensioni sono inventate."},
+ prices:{title:"Prezzi",lead:"Tutti i prezzi in CHF. Con un pacchetto risparmi su ogni seduta.",policy:"Si prega di disdire almeno 24 ore prima. I pacchetti sono validi 6 mesi."},
+ faq:{title:"Domande frequenti"},
+ loc:{title:"Come arrivare & parcheggio",lead:"Nel centro del villaggio di Saanen, a pochi minuti a piedi dalla stazione.",directions:"Indicazioni",copy:"Copia indirizzo",copied:"✓ Indirizzo copiato"},
+ park:{title:"Dove parcheggiare?",tipLabel:"Il nostro consiglio:",tip:"Parcheggia al parcheggio Bahnhofgässli vicino alla stazione di Saanen: da lì sono solo circa 3 minuti a piedi. Per favore non fermarti davanti allo studio sulla Dorfstrasse."},
+ vouchers:{title:"Buoni regalo",text:"Regala una seduta o un intero pacchetto.",cta:"Richiedi un buono"},
+ contact:{title:"Contatti",address:"Indirizzo",phone:"Telefono",hours:"Orari",hoursVal:"Mar–sab 9–19",pay:"Pagamento",follow:"Seguici",followText:"Consigli, dietro le quinte dello studio e orari liberi."},
+ footer:{imprint:"Note legali",privacy:"Privacy"}
+}};
+
+const STEPS = [
+ {c:"t1",h:{de:"Gespräch",en:"Consultation",fr:"Échange",it:"Colloquio"},p:{de:"Wünsche, Zonen und Häufigkeit besprechen",en:"We discuss your goals, zones and frequency",fr:"Vos envies, les zones et la fréquence",it:"Obiettivi, zone e frequenza"}},
+ {c:"t3",h:{de:"Aufwärmen",en:"Warm-up",fr:"Préparation",it:"Riscaldamento"},p:{de:"Warme Öle und sanfte Griffe bereiten die Haut vor",en:"Warm oils and gentle strokes prepare the skin",fr:"Huiles chaudes et gestes doux préparent la peau",it:"Oli caldi e manovre leggere preparano la pelle"}},
+ {c:"t5",h:{de:"Intensive Massage",en:"Intensive massage",fr:"Massage intensif",it:"Massaggio intenso"},p:{de:"Kräftiges Kneten und Zupfen an Beinen, Po und Bauch",en:"Firm kneading and lifting on legs, bottom and tummy",fr:"Pétrissage ferme sur jambes, fesses et ventre",it:"Impastamento deciso su gambe, glutei e addome"}},
+ {c:"t2",h:{de:"Pflege & Tipps",en:"Care & tips",fr:"Soin & conseils",it:"Cura & consigli"},p:{de:"Pflegende Lotion und Tipps für zu Hause",en:"Nourishing lotion and tips for home",fr:"Lotion nourrissante et conseils pour la maison",it:"Lozione nutriente e consigli per casa"}}
+];
+
+const ROWS = [
+ {c:"t1",h:{de:"Die Technik",en:"The technique",fr:"La technique",it:"La tecnica"},
+  li:{de:["Manuelle Massage, ohne Geräte","Kneten, Zupfen und Streichen in Richtung Herz","Druck jederzeit anpassbar"],en:["Manual massage, no machines","Kneading, lifting and stroking towards the heart","Pressure adjusted to you at any time"],fr:["Massage manuel, sans appareil","Pétrissage, palper-rouler et lissage vers le cœur","Pression ajustable à tout moment"],it:["Massaggio manuale, senza macchinari","Impastamento, pizzicotto e sfioramento verso il cuore","Pressione regolabile in qualsiasi momento"]}},
+ {c:"t3",h:{de:"Als Kur am wirkungsvollsten",en:"Best as a course",fr:"Idéal en cure",it:"Ideale come ciclo"},
+  li:{de:["Empfohlen: 5–10 Sitzungen","1–2 Sitzungen pro Woche","Pakete mit Preisvorteil"],en:["Recommended: 5–10 sessions","1–2 sessions per week","Packages at a lower price"],fr:["Recommandé : 5 à 10 séances","1 à 2 séances par semaine","Forfaits à prix avantageux"],it:["Consigliato: 5–10 sedute","1–2 sedute a settimana","Pacchetti a prezzo ridotto"]}},
+ {c:"t6",h:{de:"Nach der Sitzung",en:"After your session",fr:"Après la séance",it:"Dopo la seduta"},
+  li:{de:["Viel Wasser trinken","Bewegung und Spaziergänge unterstützen das Ergebnis","Leichte Rötungen sind normal und vergehen schnell"],en:["Drink plenty of water","Exercise and walks support the result","Slight redness is normal and fades quickly"],fr:["Boire beaucoup d'eau","Le sport et la marche soutiennent le résultat","De légères rougeurs sont normales et disparaissent vite"],it:["Bere molta acqua","Movimento e passeggiate aiutano il risultato","Lievi arrossamenti sono normali e passano presto"]}}
+];
+
+const WHO = [
+ {h:{de:"Vor dem Sommer",en:"Before summer",fr:"Avant l'été",it:"Prima dell'estate"},p:{de:"Fit für Badesaison und Ferien",en:"Ready for swimsuit season",fr:"Prête pour la saison des maillots",it:"Pronta per la stagione dei costumi"}},
+ {h:{de:"Regelmässige Pflege",en:"Regular care",fr:"Soin régulier",it:"Cura regolare"},p:{de:"Als fester Teil Ihrer Körperpflege",en:"As a fixed part of your body care",fr:"Comme rituel de soin du corps",it:"Come parte fissa della cura del corpo"}},
+ {h:{de:"Aktive Gäste",en:"Active guests",fr:"Sportives",it:"Sportivi"},p:{de:"Ergänzung zu Sport und Bewegung",en:"Alongside sport and exercise",fr:"En complément du sport",it:"In aggiunta allo sport"}},
+ {h:{de:"Als Geschenk",en:"As a gift",fr:"En cadeau",it:"Come regalo"},p:{de:"Mit unseren Gutscheinen",en:"With our gift vouchers",fr:"Avec nos bons cadeaux",it:"Con i nostri buoni regalo"}}
+];
+
+const FEATS = [
+ {b:{de:"Im Dorfzentrum",en:"Village centre",fr:"Au centre du village",it:"In centro"},s:{de:"3 Minuten vom Bahnhof Saanen",en:"3 minutes from Saanen station",fr:"À 3 minutes de la gare",it:"A 3 minuti dalla stazione"}},
+ {b:{de:"Online buchen",en:"Book online",fr:"Réservation en ligne",it:"Prenota online"},s:{de:"Rund um die Uhr, in 4 Sprachen",en:"24/7, in 4 languages",fr:"24h/24, en 4 langues",it:"24/7, in 4 lingue"}},
+ {b:{de:"TWINT & Karte",en:"TWINT & card",fr:"TWINT & carte",it:"TWINT & carta"},s:{de:"Bequem bezahlen",en:"Easy payment",fr:"Paiement facile",it:"Pagamento facile"}},
+ {b:{de:"Hygiene",en:"Hygiene",fr:"Hygiène",it:"Igiene"},s:{de:"Frische Wäsche für jeden Gast",en:"Fresh linen for every guest",fr:"Linge propre pour chaque client",it:"Biancheria pulita per ogni ospite"}}
+];
+
+const REVIEWS = [ // fictional
+ {n:"Sandra K. (Demo)",t:{de:"Kräftig, aber sehr angenehm. Meine Haut fühlt sich nach der Kur viel glatter an.",en:"Firm but very pleasant. My skin feels much smoother after the course.",fr:"Ferme mais très agréable. Ma peau est bien plus douce après la cure.",it:"Deciso ma molto piacevole. Dopo il ciclo la pelle è molto più liscia."}},
+ {n:"Laura M. (Demo)",t:{de:"Sehr professionell und herzlich. Die Online-Buchung ist super praktisch.",en:"Very professional and warm. Online booking is super handy.",fr:"Très professionnel et chaleureux. La réservation en ligne est très pratique.",it:"Molto professionale e cordiale. La prenotazione online è comodissima."}},
+ {n:"Chiara B. (Demo)",t:{de:"Ich mache gerade mein 10er-Paket – ich freue mich jede Woche darauf!",en:"I'm doing my 10-session package – I look forward to it every week!",fr:"Je fais mon forfait de 10 séances – j'ai hâte chaque semaine !",it:"Sto facendo il pacchetto da 10 – non vedo l'ora ogni settimana!"}}
+];
+
+const PRICES = [ // all made up
+ [{de:"Probesitzung",en:"Trial session",fr:"Séance d'essai",it:"Seduta di prova"},{de:"45 min, inkl. Gespräch · einmalig",en:"45 min, incl. consultation · once per person",fr:"45 min, échange inclus · une fois",it:"45 min, colloquio incluso · una volta"},90,{de:"Neu",en:"New",fr:"Nouveau",it:"Nuovo"}],
+ [{de:"Anti-Cellulite-Massage",en:"Anti-cellulite massage",fr:"Massage anticellulite",it:"Massaggio anticellulite"},{de:"60 min · Einzelsitzung",en:"60 min · single session",fr:"60 min · séance unique",it:"60 min · seduta singola"},130],
+ [{de:"5er-Paket",en:"Package of 5",fr:"Forfait 5 séances",it:"Pacchetto da 5"},{de:"5 × 60 min · CHF 120 pro Sitzung",en:"5 × 60 min · CHF 120 per session",fr:"5 × 60 min · CHF 120 la séance",it:"5 × 60 min · CHF 120 a seduta"},600],
+ [{de:"10er-Paket",en:"Package of 10",fr:"Forfait 10 séances",it:"Pacchetto da 10"},{de:"10 × 60 min · CHF 112 pro Sitzung",en:"10 × 60 min · CHF 112 per session",fr:"10 × 60 min · CHF 112 la séance",it:"10 × 60 min · CHF 112 a seduta"},1120,{de:"Beliebt",en:"Popular",fr:"Populaire",it:"Popolare"}]
+];
+
+const FAQ = [
+ {q:{de:"Wie viele Sitzungen brauche ich?",en:"How many sessions do I need?",fr:"Combien de séances faut-il ?",it:"Quante sedute servono?"},a:{de:"Wir empfehlen eine Kur von 5–10 Sitzungen, 1–2 Mal pro Woche. Das Ergebnis ist individuell.",en:"We recommend a course of 5–10 sessions, once or twice a week. Results vary from person to person.",fr:"Nous recommandons une cure de 5 à 10 séances, 1 à 2 fois par semaine. Les résultats varient d'une personne à l'autre.",it:"Consigliamo un ciclo di 5–10 sedute, 1–2 volte a settimana. I risultati variano da persona a persona."}},
+ {q:{de:"Tut die Massage weh?",en:"Does it hurt?",fr:"Est-ce douloureux ?",it:"Fa male?"},a:{de:"Sie ist kräftig, aber wir passen den Druck jederzeit an. Leichte Rötungen danach sind normal.",en:"It's firm, but we adjust the pressure at any time. Slight redness afterwards is normal.",fr:"Il est ferme, mais nous ajustons la pression à tout moment. De légères rougeurs ensuite sont normales.",it:"È deciso, ma regoliamo la pressione in qualsiasi momento. Lievi arrossamenti dopo sono normali."}},
+ {q:{de:"Wann sollte ich die Massage nicht machen?",en:"When shouldn't I have this massage?",fr:"Quand éviter ce massage ?",it:"Quando evitare questo massaggio?"},a:{de:"Zum Beispiel in der Schwangerschaft, bei Krampfadern, Hautverletzungen oder nach einer Operation. Im Zweifel fragen Sie bitte vorher Ihre Ärztin oder Ihren Arzt.",en:"For example during pregnancy, with varicose veins, skin injuries or after surgery. If in doubt, please ask your doctor first.",fr:"Par exemple pendant la grossesse, en cas de varices, de lésions cutanées ou après une opération. En cas de doute, demandez d'abord à votre médecin.",it:"Ad esempio in gravidanza, con vene varicose, lesioni della pelle o dopo un intervento. In caso di dubbio, chiedi prima al tuo medico."}},
+ {q:{de:"Übernimmt die Krankenkasse die Kosten?",en:"Is it covered by health insurance?",fr:"Est-ce remboursé par l'assurance maladie ?",it:"È rimborsato dalla cassa malati?"},a:{de:"Nein. Es ist eine kosmetische Wellness-Behandlung, keine medizinische Massage.",en:"No. It's a cosmetic wellness treatment, not a medical massage.",fr:"Non. C'est un soin de bien-être cosmétique, pas un massage médical.",it:"No. È un trattamento di benessere cosmetico, non un massaggio medico."}},
+ {q:{de:"Was soll ich mitbringen?",en:"What should I bring?",fr:"Que dois-je apporter ?",it:"Cosa devo portare?"},a:{de:"Nichts. Einweg-Unterwäsche und Handtücher liegen bereit.",en:"Nothing. Disposable underwear and towels are provided.",fr:"Rien. Sous-vêtements jetables et serviettes sont fournis.",it:"Niente. Biancheria monouso e asciugamani sono forniti."}},
+ {q:{de:"Kann ich einen Termin verschieben?",en:"Can I reschedule?",fr:"Puis-je déplacer mon rendez-vous ?",it:"Posso spostare l'appuntamento?"},a:{de:"Ja, bis 24 Stunden vorher über den Link in Ihrer Bestätigung.",en:"Yes, up to 24 hours before, using the link in your confirmation.",fr:"Oui, jusqu'à 24 heures avant, via le lien de votre confirmation.",it:"Sì, fino a 24 ore prima, con il link nella conferma."}}
+];
+
+/* Map + parking: coordinates from OpenStreetMap (Nominatim), checked 2026-10-19 */
+const SALON = {lat:46.489156, lng:7.2641244, address:"Maison Alpin, Dorfstrasse 1, 3792 Saanen, Switzerland"};
+const PARKING = [
+ {lat:46.48862,lng:7.26146,name:"Parkplatz Bahnhofgässli",walk:3,best:true,
+  d:{de:"Beim Bahnhof Saanen · gebührenpflichtig",en:"By Saanen station · paid",fr:"Près de la gare de Saanen · payant",it:"Vicino alla stazione di Saanen · a pagamento"}},
+ {lat:46.48871,lng:7.25925,name:"Parkplatz Märetgässli",walk:5,
+  d:{de:"Gebührenpflichtig",en:"Paid",fr:"Payant",it:"A pagamento"}},
+ {lat:46.48991,lng:7.25957,name:"Parkplatz Underi Märetmattestrasse",walk:6,
+  d:{de:"Gebührenpflichtig",en:"Paid",fr:"Payant",it:"A pagamento"}}
+];
+const WALK = {de:"Min. zu Fuss",en:"min walk",fr:"min à pied",it:"min a piedi"};
+const PAYAPP = {de:"Bezahlen meist per TWINT oder Park-App möglich.",en:"You can usually pay with TWINT or a parking app.",fr:"Paiement généralement possible par TWINT ou appli de parking.",it:"Di solito si può pagare con TWINT o un'app di parcheggio."};
+
+/* Social links: empty for now (add real URLs later) */
+const SOCIAL = [
+ {n:"Instagram",u:"",i:'<rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/>'},
+ {n:"Facebook",u:"",i:'<path fill="currentColor" d="M14 8h3V4h-3c-2.8 0-4 1.8-4 4.3V10H7v4h3v8h4v-8h3l1-4h-4V8.6c0-.4.3-.6.6-.6z"/>'},
+ {n:"YouTube",u:"",i:'<path fill="currentColor" d="M22 8.2a3 3 0 0 0-2.1-2.1C18 5.6 12 5.6 12 5.6s-6 0-7.9.5A3 3 0 0 0 2 8.2 31 31 0 0 0 1.6 12a31 31 0 0 0 .4 3.8 3 3 0 0 0 2.1 2.1c1.9.5 7.9.5 7.9.5s6 0 7.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .4-3.8 31 31 0 0 0-.4-3.8zM10 15.2V8.8l5.2 3.2z"/>'},
+ {n:"TikTok",u:"",i:'<path fill="currentColor" d="M16.6 2h-3.4v13.4a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.1a6.4 6.4 0 1 0 5.4 6.3V8.6a8 8 0 0 0 4.4 1.3V6.5a4.4 4.4 0 0 1-4.4-4.5z"/>'},
+ {n:"WhatsApp",u:"",i:'<path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z"/>'}
+];
+
+/* Two booking systems side by side for comparison: Cal.com and Dikidi */
+const DIKIDI_URL="https://dikidi.app/#widget=220677";
+function bookPair(L){
+  return `<button class="btn btn-gold js-book">${L.cta.book} <span class="via">Cal.com</span></button>`+
+         `<a class="btn btn-dikidi" href="${DIKIDI_URL}">${L.cta.book} <span class="via">Dikidi</span></a>`;
+}
+
+/* ---------- rendering ---------- */
+let lang = "de";
+const get = (o,p)=>p.split(".").reduce((a,k)=>a&&a[k],o);
+const $ = s=>document.querySelector(s);
+
+function render(){
+  const L=T[lang];
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>el.textContent=get(L,el.dataset.i18n)||"");
+  document.querySelectorAll(".langs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===lang));
+  $("#marquee").innerHTML=Array(6).fill(`<span>${L.marquee}</span>`).join("");
+  $("#steps").innerHTML=STEPS.map(s=>`<div class="step ${s.c}"><h3>${s.h[lang]}</h3><p>${s.p[lang]}</p></div>`).join("");
+  $("#rows").innerHTML=ROWS.map(r=>`<div class="row"><div class="ph ${r.c}"></div><div><h3>${r.h[lang]}</h3><ul>${r.li[lang].map(x=>`<li>${x}</li>`).join("")}</ul><div class="bookpair">${bookPair(L)}</div></div></div>`).join("");
+  $("#cards").innerHTML=WHO.map(w=>`<div class="card"><h3>${w.h[lang]}</h3><p>${w.p[lang]}</p></div>`).join("");
+  $("#feats").innerHTML=FEATS.map(f=>`<div class="feat"><b>${f.b[lang]}</b><span>${f.s[lang]}</span></div>`).join("");
+  $("#revs").innerHTML=REVIEWS.map(r=>`<div class="rev"><div class="stars">★★★★★</div><p>“${r.t[lang]}”</p><small>${r.n}</small></div>`).join("");
+  $("#plist").innerHTML=PRICES.map(([n,d,p,tag])=>`<div class="pitem"><div><b>${n[lang]}</b>${tag?`<span class="tag">${tag[lang]}</span>`:""}<small>${d[lang]}</small></div><div class="pr">CHF ${p.toLocaleString("de-CH")}</div></div>`).join("");
+  $("#faqlist").innerHTML=FAQ.map(f=>`<details><summary>${f.q[lang]}</summary><p>${f.a[lang]}</p></details>`).join("");
+  $("#parklist").innerHTML=PARKING.map(p=>`<li><b>${p.name}</b> – ${p.walk} ${WALK[lang]}<br><small style="color:var(--muted)">${p.d[lang]}</small></li>`).join("")+`<li style="list-style:none;margin-left:-1.1em;color:var(--muted);font-size:.9rem">${PAYAPP[lang]}</li>`;
+  document.querySelectorAll(".js-socials").forEach(el=>el.innerHTML=SOCIAL.map(s=>`<a href="${s.u||"#"}" ${s.u?'target="_blank" rel="noopener"':'onclick="return false"'} aria-label="${s.n}" title="${s.n}"><svg viewBox="0 0 24 24">${s.i}</svg></a>`).join(""));
+  document.querySelectorAll(".js-bookpair").forEach(el=>el.innerHTML=bookPair(L));
+  $("#copied").textContent="";
+  updateMapPopups();
+  bindBook();
+}
+function setLang(l){ if(!T[l]) return; lang=l; try{localStorage.setItem("demo-lang",l)}catch(e){} render(); }
+document.querySelectorAll(".langs button").forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+
+/* ---------- map (Leaflet + OpenStreetMap, no Google API) ---------- */
+let salonMarker, parkMarkers=[];
+function initMap(){
+  if(!window.L) return;
+  const map=L.map("map",{scrollWheelZoom:false,fadeAnimation:false});
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+  salonMarker=L.marker([SALON.lat,SALON.lng],{icon:L.divIcon({className:"",html:'<div class="pin-s" style="width:30px;height:30px"></div>',iconSize:[30,30],iconAnchor:[15,30],popupAnchor:[0,-30]})}).addTo(map);
+  parkMarkers=PARKING.map(p=>L.marker([p.lat,p.lng],{icon:L.divIcon({className:"",html:`<div class="pin-p" style="width:26px;height:26px">P</div>`,iconSize:[26,26],iconAnchor:[13,13]})}).addTo(map));
+  map.fitBounds(L.latLngBounds([[SALON.lat,SALON.lng],...PARKING.map(p=>[p.lat,p.lng])]).pad(0.25),{animate:false});
+  updateMapPopups();
+  salonMarker.openPopup();
+}
+function updateMapPopups(){
+  if(!salonMarker) return;
+  salonMarker.bindPopup("<b>Maison Alpin</b><br>Dorfstrasse 1, 3792 Saanen");
+  parkMarkers.forEach((m,i)=>m.bindPopup(`<b>${PARKING[i].name}</b><br>${PARKING[i].walk} ${WALK[lang]}`));
+}
+
+/* directions: Apple Maps on Apple devices, Google Maps elsewhere (plain links, no API key) */
+const isApple=/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+$("#directions").href = isApple
+  ? `https://maps.apple.com/?daddr=${encodeURIComponent(SALON.address)}&ll=${SALON.lat},${SALON.lng}`
+  : `https://www.google.com/maps/dir/?api=1&destination=${SALON.lat},${SALON.lng}`;
+
+$("#copyLoc").onclick=async()=>{
+  const text=SALON.address;
+  try{ await navigator.clipboard.writeText(text); }
+  catch(e){ const t=document.createElement("textarea"); t.value=text; document.body.appendChild(t); t.select(); try{document.execCommand("copy")}catch(_){} t.remove(); }
+  $("#copied").textContent=T[lang].loc.copied;
+  setTimeout(()=>{$("#copied").textContent=""},2500);
+};
+
+/* ---------- Cal.com booking (popup on any .js-book button) ---------- */
+(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if(typeof namespace === "string"){cal.ns[namespace] = cal.ns[namespace] || api;p(cal.ns[namespace], ar);p(cal, ["initNamespace", namespace]);} else p(cal, ar); return;} p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+Cal("init", "basic-massage", {origin:"https://app.cal.com"});
+Cal.ns["basic-massage"]("ui", {"theme":"light","hideEventTypeDetails":false,"layout":"month_view"});
+
+function bindBook(){
+  document.querySelectorAll(".js-book").forEach(b=>{
+    b.setAttribute("data-cal-namespace","basic-massage");
+    b.setAttribute("data-cal-link","massage-demo/basic-massage");
+    b.setAttribute("data-cal-config",JSON.stringify({layout:"month_view",useSlotsViewOnSmallScreen:"true",theme:"light"}));
+  });
+}
+
+/* ---------- start ---------- */
+const fromUrl = new URLSearchParams(location.search).get("lang");
+let saved=null; try{saved=localStorage.getItem("demo-lang")}catch(e){}
+const browser = (navigator.language||"de").slice(0,2);
+setLang([fromUrl,saved,browser].find(l=>T[l])||"de");
+initMap();
+</script>
+</body>
+</html>
