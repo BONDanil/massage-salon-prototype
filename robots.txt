@@ -1,0 +1,7 @@
+# DEMO prototype: the pages carry <meta name="robots" content="noindex">.
+# robots.txt only works at the domain root, so on GitHub Pages (/massage-salon-prototype/) this file is not used.
+# Real site: keep this file as it is and change the Sitemap line to the real domain.
+User-agent: *
+Allow: /
+
+Sitemap: https://bondanil.github.io/massage-salon-prototype/sitemap.xml

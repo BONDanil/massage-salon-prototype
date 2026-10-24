@@ -1,0 +1,75 @@
+# DEMO business facts for the prototype only. Everything here is MADE UP.
+# Same structure as the real ../business.yml (which stays empty until the facts are decided).
+# The pages in this folder must match this file: `make site-check` compares them.
+# When the real facts exist, the real site uses ../business.yml instead.
+
+name: Maison Alpin
+legal_name: Maison Alpin (Demo)
+legal_form: sole proprietorship (Einzelunternehmen)
+uid: CHE-000.000.000
+vat_number: null
+
+address:
+  street: Dorfstrasse 1
+  postal_code: "3792"
+  locality: Saanen
+  region: BE
+  country: CH
+geo:
+  lat: 46.489156
+  lng: 7.2641244
+
+contact:
+  phone: "+41 33 000 00 00"
+  whatsapp: "+41 79 000 00 00"
+  email: hello@example.ch
+  website: https://bondanil.github.io/massage-salon-prototype/
+
+languages_spoken: [de, en, fr, it]
+
+opening_hours:
+  default:
+    - { days: [Tu, We, Th, Fr, Sa], opens: "09:00", closes: "19:00" }
+  seasonal: []
+
+services:
+  - id: trial-45
+    name: { de: Probesitzung, en: Trial session, fr: "Séance d'essai", it: Seduta di prova }
+    duration_min: 45
+    price_chf: 90
+    category: wellness
+  - id: anti-cellulite-60
+    name: { de: Anti-Cellulite-Massage, en: Anti-cellulite massage, fr: Massage anticellulite, it: Massaggio anticellulite }
+    duration_min: 60
+    price_chf: 130
+    category: wellness
+  - id: package-5
+    name: { de: 5er-Paket, en: Package of 5, fr: Forfait 5 séances, it: Pacchetto da 5 }
+    duration_min: 60
+    sessions: 5
+    price_chf: 600
+    category: wellness
+  - id: package-10
+    name: { de: 10er-Paket, en: Package of 10, fr: Forfait 10 séances, it: Pacchetto da 10 }
+    duration_min: 60
+    sessions: 10
+    price_chf: 1120
+    category: wellness
+
+payment_methods: [Cash]   # cash only at launch (decided 2026-10-24)
+insurance_recognition: []
+
+social:
+  instagram: null
+  facebook: null
+  tiktok: null
+  youtube: null
+  google_business_profile: null
+
+# Prototype only: booking and tracking settings (placeholders, no real IDs)
+booking:
+  cal_link: massage-demo/basic-massage   # one event type for all languages; Cal.com follows the browser language
+  cal_namespace: basic-massage
+tracking:
+  ga4_id: G-XXXXXXXXXX        # placeholder: Google tag is not loaded while this is a placeholder
+  meta_pixel_id: "000000000000000"  # placeholder: Meta Pixel is not loaded while this is a placeholder
